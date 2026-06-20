@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-[#0b0e14] text-white p-4 font-sans">
+
+  <div class="max-w-md mx-auto">
+    <p class="text-xs font-semibold text-slate-500 uppercase tracking-widest mt-4">Saturday 20 Jun</p>
+    <h1 class="text-3xl font-bold mb-6 tracking-tight">Schedule</h1>
+
+    <div class="bg-[#161b22] p-1 rounded-2xl flex mb-6 border border-[#21262d]">
+      <button id="tab-today" onclick="showView('today')" class="flex-1 py-3 bg-[#0d1117] rounded-xl font-medium shadow-sm">Today</button>
+      <button id="tab-week" onclick="showView('week')" class="flex-1 py-3 text-slate-500 font-medium hover:text-white transition-colors">Week</button>
+    </div>
+
+    <div id="workout-list" class="space-y-4">
+      <div id="card-1" data-view="today" class="workout-card bg-[#161b22] border border-[#21262d] p-6 rounded-3xl flex justify-between items-center">
+        <div>
+          <h2 class="font-bold text-lg">Interim Base Endurance</h2>
+          <p class="text-sm text-slate-400">Steady Zone 2 aerobic prep.</p>
+        </div>
+        <button onclick="toggle(this, 'card-1')" class="check-btn w-8 h-8 rounded-full border-2 border-slate-600 transition-all"></button>
+      </div>
+
+      <div id="card-2" data-view="week" class="workout-card hidden bg-[#161b22] border border-[#21262d] p-6 rounded-3xl flex justify-between items-center">
+        <div>
+          <h2 class="font-bold text-lg">Strength Circuit</h2>
+          <p class="text-sm text-slate-400">Core stability session.</p>
+        </div>
+        <button onclick="toggle(this, 'card-1')" class="check-btn w-8 h-8 rounded-full border-2 border-slate-600 transition-all"></button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // 1. Persistence: Load saved data
+    const saved = JSON.parse(localStorage.getItem('my_training_app') || '{}');
+
+    function showView(view) {
+      document.getElementById('tab-today').className = view === 'today' ? 'flex-1 py-3 bg-[#0d1117] rounded-xl font-medium' : 'flex-1 py-3 text-slate-500';
+      document.getElementById('tab-week').className = view === 'week' ? 'flex-1 py-3 bg-[#0d1117] rounded-xl font-medium' : 'flex-1 py-3 text-slate-500';
+
+      document.querySelectorAll('.workout-card').forEach(card => {
+        card.classList.toggle('hidden', view === 'today' && card.dataset.view !== 'today');
+        card.classList.toggle('hidden', view === 'week' && card.dataset.view !== 'week');
+      });
+      
+      saved.lastView = view;
+      localStorage.setItem('my_training_app', JSON.stringify(saved));
+    }
+
+    function toggle(btn, id) {
+      const card = btn.closest('.workout-card');
+      const isDone = card.classList.toggle('opacity-50');
+      btn.classList.toggle('bg-emerald-500');
+      btn.classList.toggle('border-emerald-500');
+      btn.classList.toggle('border-slate-600');
+      
+      saved[id] = isDone;
+      localStorage.setItem('my_training_app', JSON.stringify(saved));
+    }
+
+    // 2. Initialization: Restore state
+    if (saved.lastView) showView(saved.lastView);
+    if (saved['card-1']) {
+      const btn = document.querySelector('#card-1 .check-btn');
+      toggle(btn, 'card-1');
+    }
+  </script>
+</body>
+</html>
