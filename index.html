@@ -3,6 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
   <title>Training App</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
@@ -12,8 +14,6 @@
 <body class="bg-slate-950 text-slate-100 font-sans select-none">
 
   <div class="min-h-screen p-4 pb-12 max-w-md mx-auto">
-    
-    <!-- Header Section -->
     <header class="flex items-center justify-between my-4">
       <div>
         <p id="current-date-display" class="text-xs font-semibold uppercase tracking-widest text-slate-500">Loading Date...</p>
@@ -22,24 +22,17 @@
       <div class="h-10 w-10 rounded-full bg-gradient-to-tr from-cyan-500 to-blue-600 shadow-lg shadow-blue-500/20"></div>
     </header>
 
-    <!-- Week Selector Controls -->
     <div class="bg-slate-900 px-3 py-2 rounded-xl flex items-center justify-between mb-3 border border-slate-800/50">
       <button onclick="navigateWeek(-1)" class="p-2 text-slate-400 hover:text-white transition-colors text-lg font-bold">←</button>
       <span id="week-scope-label" class="text-sm font-semibold text-slate-200 tracking-wide">Calculating Phase...</span>
       <button onclick="navigateWeek(1)" class="p-2 text-slate-400 hover:text-white transition-colors text-lg font-bold">→</button>
     </div>
 
-    <!-- View Switcher (Today vs Week) -->
     <div class="bg-slate-900 p-1 rounded-xl flex items-center justify-between mb-4 border border-slate-800/50">
-      <button id="btn-today" onclick="setViewState('today')" class="w-1/2 py-2 text-sm font-medium rounded-lg text-white bg-slate-800 shadow-sm transition-all duration-200">
-        Today
-      </button>
-      <button id="btn-week" onclick="setViewState('week')" class="w-1/2 py-2 text-sm font-medium rounded-lg text-slate-400 hover:text-white transition-all duration-200">
-        Full Week
-      </button>
+      <button id="btn-today" onclick="setViewState('today')" class="w-1/2 py-2 text-sm font-medium rounded-lg text-white bg-slate-800 shadow-sm transition-all duration-200">Today</button>
+      <button id="btn-week" onclick="setViewState('week')" class="w-1/2 py-2 text-sm font-medium rounded-lg text-slate-400 hover:text-white transition-all duration-200">Full Week</button>
     </div>
 
-    <!-- Stats Overview Panel -->
     <section class="grid grid-cols-2 gap-4 mb-6">
       <div class="bg-slate-900/60 border border-slate-800/80 p-4 rounded-2xl">
         <p class="text-xs font-medium text-slate-500 mb-1">Target Event</p>
@@ -51,21 +44,16 @@
       </div>
     </section>
 
-    <!-- Schedule List Container -->
-    <main id="schedule-container" class="space-y-3">
-      <!-- Generated dynamically -->
-    </main>
+    <main id="schedule-container" class="space-y-3"></main>
   </div>
 
   <script>
-    const PLAN_START = new Date(2026, 5, 29); // Mon Jun 29, 2026
-    
-    // Track current UI context
+    const PLAN_START = new Date(2026, 5, 29);
     let currentViewMode = 'today';
-    let anchorNavigationDate = new Date(); // Controls what day or week we are looking at
-
-    // In-memory global completion store (uses ISO date strings 'YYYY-MM-DD' as keys)
-    const completionStorage = {};
+    let anchorNavigationDate = new Date();
+    
+    // Persistent storage initialization
+    let completionStorage = JSON.parse(localStorage.getItem('trainingProgress')) || {};
 
     const targetPlan = {
       "Mon": { title: "Gym (Legs)", desc: "Heavy Legs: Compound structural stability sets (Squats, Lunges, Deadlifts)." },
@@ -78,177 +66,97 @@
     };
 
     const variableWeeklyMetrics = {
-      1:  { Fri: "Pull Gym + 30m Easy",     Sat: "3 miles total (inc. Parkrun)", Sun: "Sunday Long Ride Base" },
-      2:  { Fri: "Pull Gym + 30m Tempo",    Sat: "40 mins total (inc. Parkrun)", Sun: "Sunday Long Ride Base" },
-      3:  { Fri: "Pull Gym + 30m Easy",     Sat: "50 mins total (inc. Parkrun)", Sun: "Sunday Long Ride Base" },
-      4:  { Fri: "Pull Gym + 40m Easy",     Sat: "60 mins total (inc. Parkrun)", Sun: "Sunday Long Ride Base" },
-      5:  { Fri: "Pull Gym + 40m Tempo",    Sat: "6 miles total (inc. Parkrun)", Sun: "Sunday Long Ride Base" },
-      6:  { Fri: "Pull Gym + 40m Easy",     Sat: "7 miles total (inc. Parkrun)", Sun: "Sunday Long Ride Base" },
-      7:  { Fri: "Pull Gym + 40m Tempo",    Sat: "8 miles total (inc. Parkrun)", Sun: "Sunday Long Ride Base" },
-      8:  { Fri: "Pull Gym + 40m Easy",     Sat: "10 miles total (inc. Parkrun)", Sun: "Sunday Long Ride Base" },
-      9:  { Fri: "Pull Gym + 40m Tempo",    Sat: "12 miles total (inc. Parkrun)", Sun: "Sunday Long Ride Base" },
-      10: { Fri: "Pull Gym + 40m Easy",     Sat: "13 miles total (inc. Parkrun)", Sun: "Sunday Long Ride Base" },
-      11: { Fri: "Pull Gym + 30m Easy",     Sat: "6 miles total (inc. Parkrun)",  Sun: "Short Endurance Ride Taper", Mon: "Light Legs (Taper)" },
-      12: { Mon: "REST / Stretch",          Tue: "Push Gym + Easy Spin",          Wed: "5k Easy Jog", Fri: "Pull Gym + 20m Easy", Sat: "REST / Shakeout", Sun: "🏆 RACE DAY! Copenhagen Half" }
+      1: { Fri: "Pull Gym + 30m Easy", Sat: "3 miles total (inc. Parkrun)", Sun: "Sunday Long Ride Base" },
+      2: { Fri: "Pull Gym + 30m Tempo", Sat: "40 mins total (inc. Parkrun)", Sun: "Sunday Long Ride Base" },
+      3: { Fri: "Pull Gym + 30m Easy", Sat: "50 mins total (inc. Parkrun)", Sun: "Sunday Long Ride Base" },
+      4: { Fri: "Pull Gym + 40m Easy", Sat: "60 mins total (inc. Parkrun)", Sun: "Sunday Long Ride Base" },
+      5: { Fri: "Pull Gym + 40m Tempo", Sat: "6 miles total (inc. Parkrun)", Sun: "Sunday Long Ride Base" },
+      6: { Fri: "Pull Gym + 40m Easy", Sat: "7 miles total (inc. Parkrun)", Sun: "Sunday Long Ride Base" },
+      7: { Fri: "Pull Gym + 40m Tempo", Sat: "8 miles total (inc. Parkrun)", Sun: "Sunday Long Ride Base" },
+      8: { Fri: "Pull Gym + 40m Easy", Sat: "10 miles total (inc. Parkrun)", Sun: "Sunday Long Ride Base" },
+      9: { Fri: "Pull Gym + 40m Tempo", Sat: "12 miles total (inc. Parkrun)", Sun: "Sunday Long Ride Base" },
+      10: { Fri: "Pull Gym + 40m Easy", Sat: "13 miles total (inc. Parkrun)", Sun: "Sunday Long Ride Base" },
+      11: { Fri: "Pull Gym + 30m Easy", Sat: "6 miles total (inc. Parkrun)", Sun: "Short Endurance Ride Taper", Mon: "Light Legs (Taper)" },
+      12: { Mon: "REST / Stretch", Tue: "Push Gym + Easy Spin", Wed: "5k Easy Jog", Fri: "Pull Gym + 20m Easy", Sat: "REST / Shakeout", Sun: "🏆 RACE DAY! Copenhagen Half" }
     };
 
     function getWorkoutDetails(targetDate) {
       const dayNameShort = targetDate.toLocaleDateString('en-US', { weekday: 'short' });
-      
       if (targetDate < PLAN_START) {
-        if (dayNameShort === "Sat" || dayNameShort === "Sun") {
-          return { title: "Interim Base Endurance", desc: "Steady active Zone 2 aerobic prep before official program initialization." };
-        } else if (dayNameShort === "Thu") {
-          return { title: "Full Rest Day", desc: "System recovery track focus before plan activation.", isRest: true };
-        } else {
-          return { title: "Interim Maintenance Training", desc: "Moderate volume structure to sustain existing cardiovascular conditioning safely." };
-        }
+        return (dayNameShort === "Thu") ? { title: "Full Rest Day", desc: "Recovery track focus before plan activation.", isRest: true } : { title: "Interim Training", desc: "Maintenance volume." };
       }
-
-      // Calculate exact plan week
-      const diffTime = targetDate - PLAN_START;
-      const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+      const diffDays = Math.floor((targetDate - PLAN_START) / (1000 * 60 * 60 * 24));
       const currentWeekNumber = Math.floor(diffDays / 7) + 1;
-
-      if (currentWeekNumber > 12) {
-        return { title: "Post-Event Transition", desc: "Unstructured active recovery phase." };
-      }
-
-      let baseLayout = { ...targetPlan[dayNameShort] };
-      baseLayout.weekNum = currentWeekNumber;
-
+      let baseLayout = { ...targetPlan[dayNameShort], weekNum: currentWeekNumber };
       if (variableWeeklyMetrics[currentWeekNumber] && variableWeeklyMetrics[currentWeekNumber][dayNameShort]) {
         baseLayout.title = variableWeeklyMetrics[currentWeekNumber][dayNameShort];
       }
       return baseLayout;
     }
 
-    function getMondayOfWeek(d) {
-      const date = new Date(d);
-      const day = date.getDay();
-      const diff = date.getDate() - day + (day === 0 ? -6 : 1); // Adjust when Sunday to look back
-      return new Date(date.setDate(diff));
-    }
-
     function renderDynamicSchedule() {
       const container = document.getElementById('schedule-container');
       container.innerHTML = '';
-      
       const realTodayStr = new Date().toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
       let datesToRender = [];
 
       if (currentViewMode === 'today') {
         datesToRender.push(new Date(anchorNavigationDate));
-        document.getElementById('view-title-display').innerText = "Target Day";
       } else {
-        document.getElementById('view-title-display').innerText = "Weekly View";
-        // Always align the 7-day display list to start from Monday of the selected anchor date week
-        let startMonday = getMondayOfWeek(anchorNavigationDate);
+        let startMonday = new Date(anchorNavigationDate);
+        startMonday.setDate(startMonday.getDate() - (startMonday.getDay() === 0 ? 6 : startMonday.getDay() - 1));
         for (let i = 0; i < 7; i++) {
-          let projectDay = new Date(startMonday);
-          projectDay.setDate(startMonday.getDate() + i);
-          datesToRender.push(projectDay);
+          let d = new Date(startMonday);
+          d.setDate(startMonday.getDate() + i);
+          datesToRender.push(d);
         }
       }
 
-      // Update the contextual label indicating current week status
-      const sampleProfile = getWorkoutDetails(datesToRender[0]);
-      document.getElementById('week-scope-label').innerText = sampleProfile.weekNum ? `Program Week ${sampleProfile.weekNum}` : "Interim Prep Week";
-
       datesToRender.forEach(dateElement => {
-        const dataProfile = getWorkoutDetails(dateElement);
-        const loopDayStr = dateElement.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
-        const isToday = loopDayStr === realTodayStr;
-        
-        // Generate reliable object tracking key
         const dateKey = dateElement.toISOString().split('T')[0];
         const isSavedAsComplete = !!completionStorage[dateKey];
-
-        const isRest = dataProfile.isRest;
-        const weekPrefix = dataProfile.weekNum ? `W${dataProfile.weekNum} · ` : `Interim · `;
-
-        const cardElement = document.createElement('div');
-        cardElement.setAttribute('data-date-key', dateKey);
-        
-        // Build interactive card frame with appropriate initial visual classes applied
-        cardElement.className = `workout-card relative border rounded-2xl p-4 transition-all duration-200 ${
-          isSavedAsComplete ? 'opacity-40 grayscale-[30%] border-slate-900/50' : 
-          isToday ? 'border-cyan-500/40 shadow-lg shadow-cyan-500/5 bg-gradient-to-r from-slate-900 to-slate-900/90' : 'border-slate-800 bg-gradient-to-r from-slate-900 to-slate-900/90'
-        }`;
-        
-        cardElement.innerHTML = `
+        const dataProfile = getWorkoutDetails(dateElement);
+        const card = document.createElement('div');
+        card.className = `workout-card relative border rounded-2xl p-4 transition-all duration-200 ${isSavedAsComplete ? 'opacity-40 grayscale-[30%] border-slate-900/50' : 'border-slate-800 bg-gradient-to-r from-slate-900 to-slate-900/90'}`;
+        card.innerHTML = `
           <div class="flex items-start justify-between gap-4">
             <div class="space-y-1 flex-1">
-              <div class="flex items-center gap-2">
-                <span class="badge px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded-md ${
-                  isSavedAsComplete ? 'bg-slate-800 text-slate-500 border border-slate-700/50' :
-                  isToday ? 'bg-cyan-500/10 text-cyan-400 border border-cyan-500/20' : 'bg-slate-800 text-slate-400'
-                }">
-                  ${loopDayStr === realTodayStr ? 'Today' : dateElement.toLocaleDateString('en-GB', { weekday: 'long' })}
-                </span>
-                <span class="time-label text-xs font-medium ${isSavedAsComplete ? 'line-through text-slate-500' : 'text-slate-500'}">${weekPrefix}${loopDayStr}</span>
-              </div>
-              <h3 class="workout-title text-lg font-bold tracking-tight pt-1 ${isSavedAsComplete ? 'line-through text-slate-400' : 'text-white'}">${dataProfile.title}</h3>
-              <p class="workout-desc text-sm font-light ${isSavedAsComplete ? 'line-through text-slate-500' : 'text-slate-400'}">${dataProfile.desc}</p>
+              <h3 class="text-lg font-bold text-white">${dataProfile.title}</h3>
+              <p class="text-sm text-slate-400">${dataProfile.desc}</p>
             </div>
-            ${isRest ? `
-              <div class="h-7 w-7 flex items-center justify-center text-slate-700 mt-1 select-none">🔒</div>
-            ` : `
-              <button onclick="toggleCardComplete('${dateKey}', this)" class="check-btn shrink-0 h-7 w-7 rounded-full border-2 flex items-center justify-center transition-colors mt-1 ${
-                isSavedAsComplete ? 'bg-emerald-500 border-emerald-500' : 'bg-slate-950 border-slate-700 hover:border-cyan-500'
-              }">
-                <div class="inner-dot h-3 w-3 rounded-full transition-colors ${isSavedAsComplete ? 'bg-slate-950' : 'bg-transparent'}"></div>
-              </button>
+            ${dataProfile.isRest ? '<div class="h-7 w-7 text-slate-700">🔒</div>' : `
+              <button onclick="toggleCardComplete('${dateKey}')" class="h-7 w-7 rounded-full border-2 ${isSavedAsComplete ? 'bg-emerald-500 border-emerald-500' : 'border-slate-700'}"></button>
             `}
           </div>
         `;
-        container.appendChild(cardElement);
+        container.appendChild(card);
       });
-
       updateMetricCounter();
+    }
+
+    function toggleCardComplete(dateKey) {
+      completionStorage[dateKey] = !completionStorage[dateKey];
+      localStorage.setItem('trainingProgress', JSON.stringify(completionStorage));
+      renderDynamicSchedule();
     }
 
     function setViewState(mode) {
       currentViewMode = mode;
-      const todayBtn = document.getElementById('btn-today');
-      const weekBtn = document.getElementById('btn-week');
-
-      if (mode === 'today') {
-        todayBtn.className = "w-1/2 py-2 text-sm font-medium rounded-lg text-white bg-slate-800 shadow-sm transition-all";
-        weekBtn.className = "w-1/2 py-2 text-sm font-medium rounded-lg text-slate-400 hover:text-white transition-all";
-      } else {
-        weekBtn.className = "w-1/2 py-2 text-sm font-medium rounded-lg text-white bg-slate-800 shadow-sm transition-all";
-        todayBtn.className = "w-1/2 py-2 text-sm font-medium rounded-lg text-slate-400 hover:text-white transition-all";
-      }
       renderDynamicSchedule();
     }
 
     function navigateWeek(direction) {
-      if (currentViewMode === 'today') {
-        anchorNavigationDate.setDate(anchorNavigationDate.getDate() + direction);
-      } else {
-        anchorNavigationDate.setDate(anchorNavigationDate.getDate() + (direction * 7));
-      }
-      renderDynamicSchedule();
-    }
-
-    function toggleCardComplete(dateKey, button) {
-      // Toggle value in central data tracking dictionary
-      completionStorage[dateKey] = !completionStorage[dateKey];
-      
-      // Re-render immediately to update formatting flawlessly across internal configurations
+      anchorNavigationDate.setDate(anchorNavigationDate.getDate() + (currentViewMode === 'today' ? direction : direction * 7));
       renderDynamicSchedule();
     }
 
     function updateMetricCounter() {
-      const total = document.querySelectorAll('.workout-card .check-btn').length;
-      const completed = document.querySelectorAll('.workout-card.opacity-40').length;
+      const completed = document.querySelectorAll('.opacity-40').length;
+      const total = document.querySelectorAll('.workout-card').length;
       document.getElementById('completion-counter').innerText = `${completed} / ${total} Done`;
     }
 
-    // Initialize View Layer
-    const dateOptions = { weekday: 'long', day: 'numeric', month: 'short' };
-    document.getElementById('current-date-display').innerText = new Date().toLocaleDateString('en-GB', dateOptions);
+    document.getElementById('current-date-display').innerText = new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'short' });
     renderDynamicSchedule();
   </script>
 </body>
