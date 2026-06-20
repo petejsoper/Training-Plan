@@ -1,4 +1,4 @@
-<!DOCTYPE <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -11,39 +11,34 @@
   
   <div class="bg-slate-900 p-1 rounded-xl flex mb-6 border border-slate-800">
     <button id="btn-today" onclick="setView('today')" class="w-1/2 py-2 text-sm bg-slate-800 rounded-lg font-bold">Today</button>
-    <button id="btn-week" onclick="setView('week')" class="w-1/2 py-2 text-sm text-slate-400 font-bold">Week</button>
+    <button id="btn-week" onclick="setView('week')" class="w-1/2 py-2 text-sm text-slate-800/0 font-bold">Week</button>
   </div>
   
   <div id="app" class="space-y-4"></div>
 
   <script>
     const saved = JSON.parse(localStorage.getItem('tr_data') || '{}');
-    const todayStr = new Date().toISOString().split('T')[0];
-    
-    // Simple 7-day mock schedule for demonstration
     const schedule = [
-      { id: '2026-06-20', title: 'Gym (Legs)', desc: 'Heavy compound lifts.' },
-      { id: '2026-06-21', title: 'Gym (Push) + Cycle', desc: 'Push sets + 20m ride.' },
-      { id: '2026-06-22', title: 'Club Run', desc: '5k Hilly loop.' },
-      { id: '2026-06-23', title: 'Rest Day', desc: 'Full recovery.', isRest: true },
-      { id: '2026-06-24', title: 'Gym (Pull)', desc: 'Pull sets + run.' },
-      { id: '2026-06-25', title: 'Parkrun', desc: 'Integration session.' },
-      { id: '2026-06-26', title: 'Long Cycle', desc: 'Endurance focus.' }
+      { id: 'mon', date: '2026-06-29', title: 'Gym (Legs)', desc: 'Heavy compound lifts.' },
+      { id: 'tue', date: '2026-06-30', title: 'Gym (Push) + Cycle', desc: 'Push sets + 20m ride.' },
+      { id: 'wed', date: '2026-07-01', title: 'Club Run', desc: '5k Hilly loop.' },
+      { id: 'thu', date: '2026-07-02', title: 'Rest Day', desc: 'Full recovery.', isRest: true }
     ];
 
     function render(mode) {
       const app = document.getElementById('app');
       app.innerHTML = '';
       
-      schedule.forEach(item => {
-        if (mode === 'today' && item.id !== todayStr) return;
+      // In 'today' mode, show only the first item if no date match
+      const items = (mode === 'today') ? [schedule[0]] : schedule;
 
+      items.forEach(item => {
         const isDone = saved[item.id];
         const div = document.createElement('div');
         div.className = `p-4 rounded-xl border border-slate-800 flex justify-between items-center ${isDone ? 'opacity-40 border-emerald-900' : 'bg-slate-900'}`;
         div.innerHTML = `
           <div>
-            <h2 class="font-bold">${item.id}: ${item.title}</h2>
+            <h2 class="font-bold">${item.title}</h2>
             <p class="text-sm text-slate-400">${item.desc}</p>
           </div>
           ${!item.isRest ? `<button onclick="toggle('${item.id}')" class="w-6 h-6 border-2 rounded-full ${isDone ? 'bg-emerald-500' : 'border-slate-700'}"></button>` : '<span>🔒</span>'}
@@ -53,15 +48,8 @@
     }
 
     function setView(mode) {
-      document.getElementById('btn-today').className = `w-1/2 py-2 text-sm rounded-lg font-bold ${mode === 'today' ? 'bg-slate-800' : 'text-slate-400'}`;
-      document.getElementById('btn-week').className = `w-1/2 py-2 text-sm rounded-lg font-bold ${mode === 'week' ? 'bg-slate-800' : 'text-slate-400'}`;
-      render(mode);
-    }
-
-    function toggle(id) {
-      saved[id] = !saved[id];
-      localStorage.setItem('tr_data', JSON.stringify(saved));
-      const mode = document.getElementById('btn-today').classList.contains('bg-slate-800') ? 'today' : 'week';
+      document.getElementById('btn-today').className = `w-1/2 py-2 text-sm rounded-lg font-bold ${mode === 'today' ? 'bg-slate-800' : 'bg-transparent'}`;
+      document.getElementById('btn-week').className = `w-1/2 py-2 text-sm rounded-lg font-bold ${mode === 'week' ? 'bg-slate-800' : 'bg-transparent'}`;
       render(mode);
     }
 
