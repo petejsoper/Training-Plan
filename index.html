@@ -2,94 +2,36 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <title>Training App</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Training</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-slate-950 text-slate-100 font-sans">
-  <div class="min-h-screen p-4 max-w-md mx-auto">
-    <header class="my-4">
-      <p id="date-display" class="text-xs text-slate-500 uppercase tracking-widest">Loading...</p>
-      <h1 class="text-2xl font-bold text-white">Your Schedule</h1>
-    </header>
-
-    <div class="bg-slate-900 p-1 rounded-xl flex mb-4 border border-slate-800">
-      <button onclick="setView('today')" class="w-1/2 py-2 text-sm bg-slate-800 rounded-lg">Today</button>
-      <button onclick="setView('week')" class="w-1/2 py-2 text-sm text-slate-400">Week</button>
+<body class="bg-slate-950 text-white p-4">
+  <h1 class="text-xl font-bold mb-4">Training Schedule</h1>
+  
+  <div id="app" class="space-y-4">
+    <div class="bg-slate-900 p-4 rounded-xl border border-slate-800">
+      <h2 class="font-bold">Mon 29 Jun: Gym (Legs)</h2>
+      <p class="text-sm text-slate-400">Heavy compound lifts.</p>
     </div>
-
-    <main id="container" class="space-y-3"></main>
+    <div class="bg-slate-900 p-4 rounded-xl border border-slate-800">
+      <h2 class="font-bold">Tue 30 Jun: Gym (Push) + Cycle</h2>
+      <p class="text-sm text-slate-400">Push sets + 20m fast ride.</p>
+    </div>
+    <div class="bg-slate-900 p-4 rounded-xl border border-slate-800">
+      <h2 class="font-bold">Wed 01 Jul: Club Run</h2>
+      <p class="text-sm text-slate-400">5k Hilly loop.</p>
+    </div>
+    <div class="bg-slate-900 p-4 rounded-xl border border-slate-800">
+      <h2 class="font-bold">Thu 02 Jul: Rest Day</h2>
+      <p class="text-sm text-slate-400">Full recovery.</p>
+    </div>
   </div>
 
   <script>
-    const PLAN_START = new Date(2026, 5, 29);
-    let storage = JSON.parse(localStorage.getItem('tr_prog')) || {};
-    let view = 'today';
-    let anchor = new Date();
-
-    const plan = {
-      "Mon": { title: "Gym (Legs)", desc: "Heavy compound lifts." },
-      "Tue": { title: "Gym (Push) + Cycle", desc: "Push sets + 20m fast ride." },
-      "Wed": { title: "Club Run", desc: "5k Hilly loop." },
-      "Thu": { title: "Rest Day", desc: "Full recovery.", isRest: true },
-      "Fri": { title: "Gym (Pull) + Base Run", desc: "Pull sets + run." },
-      "Sat": { title: "Parkrun + Long Run", desc: "Long integration." },
-      "Sun": { title: "Long Cycle", desc: "Endurance focus." }
-    };
-
-    function render() {
-      const container = document.getElementById('container');
-      container.innerHTML = '';
-      
-      let days = [];
-      if (view === 'today') {
-        days.push(new Date(anchor));
-      } else {
-        let monday = new Date(anchor);
-        monday.setDate(monday.getDate() - (monday.getDay() === 0 ? 6 : monday.getDay() - 1));
-        for (let i = 0; i < 7; i++) {
-          let d = new Date(monday);
-          d.setDate(monday.getDate() + i);
-          days.push(d);
-        }
-      }
-
-      days.forEach(d => {
-        const key = d.toISOString().split('T')[0];
-        const dayKey = d.toLocaleDateString('en-US', { weekday: 'short' });
-        const workout = plan[dayKey] || { title: "Training", desc: "Standard session" };
-        const isDone = storage[key];
-
-        const card = document.createElement('div');
-        card.className = `p-4 border rounded-2xl ${isDone ? 'opacity-40 border-slate-900' : 'bg-slate-900 border-slate-800'}`;
-        card.innerHTML = `
-          <div class="flex justify-between items-start">
-            <div>
-              <p class="text-[10px] text-slate-500 uppercase">${d.toLocaleDateString('en-GB', {weekday:'short', day:'numeric'})}</p>
-              <h3 class="font-bold">${workout.title}</h3>
-              <p class="text-sm text-slate-400">${workout.desc}</p>
-            </div>
-            ${workout.isRest ? '<span>🔒</span>' : `
-              <button onclick="toggle('${key}')" class="h-6 w-6 rounded-full border-2 ${isDone ? 'bg-emerald-500' : 'border-slate-700'}"></button>
-            `}
-          </div>
-        `;
-        container.appendChild(card);
-      });
-    }
-
-    function toggle(key) {
-      storage[key] = !storage[key];
-      localStorage.setItem('tr_prog', JSON.stringify(storage));
-      render();
-    }
-
-    function setView(v) { view = v; render(); }
-    function navigate(d) { anchor.setDate(anchor.getDate() + d); render(); }
-
-    document.getElementById('date-display').innerText = new Date().toDateString();
-    render();
+    // Simple debug test
+    console.log("Script loaded");
+    document.body.insertAdjacentHTML('beforeend', '<p class="text-emerald-500 text-xs mt-4">Script initialized successfully</p>');
   </script>
 </body>
 </html>
