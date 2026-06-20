@@ -9,29 +9,62 @@
 <body class="bg-slate-950 text-white p-4">
   <h1 class="text-xl font-bold mb-4">Training Schedule</h1>
   
+  <div class="bg-slate-900 p-1 rounded-xl flex mb-6 border border-slate-800">
+    <button id="btn-today" onclick="setView('today')" class="w-1/2 py-2 text-sm bg-slate-800 rounded-lg font-bold">Today</button>
+    <button id="btn-week" onclick="setView('week')" class="w-1/2 py-2 text-sm text-slate-400 font-bold">Week</button>
+  </div>
+  
   <div id="app" class="space-y-4">
-    <div class="bg-slate-900 p-4 rounded-xl border border-slate-800">
-      <h2 class="font-bold">Mon 29 Jun: Gym (Legs)</h2>
-      <p class="text-sm text-slate-400">Heavy compound lifts.</p>
+    <div id="item-0" class="workout-card bg-slate-900 p-4 rounded-xl border border-slate-800 flex justify-between items-center">
+      <div>
+        <h2 class="font-bold">Mon 29 Jun: Gym (Legs)</h2>
+        <p class="text-sm text-slate-400">Heavy compound lifts.</p>
+      </div>
+      <button onclick="toggle(0, 'item-0')" class="w-6 h-6 border-2 border-slate-700 rounded-full"></button>
     </div>
-    <div class="bg-slate-900 p-4 rounded-xl border border-slate-800">
-      <h2 class="font-bold">Tue 30 Jun: Gym (Push) + Cycle</h2>
-      <p class="text-sm text-slate-400">Push sets + 20m fast ride.</p>
-    </div>
-    <div class="bg-slate-900 p-4 rounded-xl border border-slate-800">
-      <h2 class="font-bold">Wed 01 Jul: Club Run</h2>
-      <p class="text-sm text-slate-400">5k Hilly loop.</p>
-    </div>
-    <div class="bg-slate-900 p-4 rounded-xl border border-slate-800">
-      <h2 class="font-bold">Thu 02 Jul: Rest Day</h2>
-      <p class="text-sm text-slate-400">Full recovery.</p>
+
+    <div id="item-1" class="workout-card bg-slate-900 p-4 rounded-xl border border-slate-800 flex justify-between items-center">
+      <div>
+        <h2 class="font-bold">Tue 30 Jun: Gym (Push) + Cycle</h2>
+        <p class="text-sm text-slate-400">Push sets + 20m fast ride.</p>
+      </div>
+      <button onclick="toggle(1, 'item-1')" class="w-6 h-6 border-2 border-slate-700 rounded-full"></button>
     </div>
   </div>
 
   <script>
-    // Simple debug test
-    console.log("Script loaded");
-    document.body.insertAdjacentHTML('beforeend', '<p class="text-emerald-500 text-xs mt-4">Script initialized successfully</p>');
+    const saved = JSON.parse(localStorage.getItem('tr_data') || '{}');
+    
+    // Apply saved state
+    Object.keys(saved).forEach(id => {
+      const el = document.getElementById(id);
+      if(el) {
+        el.classList.add('opacity-40', 'border-emerald-900');
+      }
+    });
+
+    function setView(mode) {
+      const btnToday = document.getElementById('btn-today');
+      const btnWeek = document.getElementById('btn-week');
+      
+      if (mode === 'today') {
+        btnToday.className = "w-1/2 py-2 text-sm bg-slate-800 rounded-lg font-bold";
+        btnWeek.className = "w-1/2 py-2 text-sm text-slate-400 font-bold";
+      } else {
+        btnWeek.className = "w-1/2 py-2 text-sm bg-slate-800 rounded-lg font-bold";
+        btnToday.className = "w-1/2 py-2 text-sm text-slate-400 font-bold";
+      }
+    }
+
+    function toggle(index, id) {
+      const el = document.getElementById(id);
+      const isDone = el.classList.toggle('opacity-40');
+      el.classList.toggle('border-emerald-900');
+      
+      if(isDone) saved[id] = true;
+      else delete saved[id];
+      localStorage.setItem('tr_data', JSON.stringify(saved));
+    }
   </script>
 </body>
 </html>
